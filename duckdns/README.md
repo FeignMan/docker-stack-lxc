@@ -1,6 +1,7 @@
 ### Add crontab entry
 ```
-*/5 * * * * ~/docker-stack-lxc/duck/duck.sh >/dev/null 2>&1
+DUCKDNS_TOKEN="xyz"
+*/5 * * * * ~/docker-stack-lxc/duckdns/duck.sh >/dev/null 2>&1
 ```
 
 ### Logs
