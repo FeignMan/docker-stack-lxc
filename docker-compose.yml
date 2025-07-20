@@ -1,0 +1,47 @@
+secrets:
+  cf_dns_api_token:
+    file: ./secrets/cf_dns_api_token
+  email:
+    file: ./secrets/email
+
+services:
+  traefik:
+    image: traefik:3.4.4
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    environment:
+      - TZ=Europe/Paris
+      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
+      - CF_EMAIL_FILE=/run/secrets/email
+    secrets:
+      - cf_dns_api_token
+      - email
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
+      - ./traefik/rules.toml:/etc/traefik/rules.toml:ro
+      - ./traefik/acme.json:/etc/traefik/acme.json:rw
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.rule=Host(`traefik.feignman.online`)
+      - traefik.http.routers.traefik.tls.certresolver=dns-cloudflare
+
+  vaultwarden:
+    image: vaultwarden/server:1.34.1-alpine
+    container_name: vaultwarden
+    volumes:
+      - /home/ishan/.local/state/iotstack/vaultwarden:/data/
+    ports:
+      - 8090:80
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vault.feignman.online`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"

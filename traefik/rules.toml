@@ -1,0 +1,31 @@
+[http.routers]
+    [http.routers.hass]
+        rule = "Host(`hass.feignman.online`)"
+        entrypoints = ["websecure"]
+        service = "hass"
+        [http.routers.hass.tls]
+            certResolver = "dns-cloudflare"
+
+    [http.routers.nextcloud]
+        rule = "Host(`nextcloud.feignman.online`)"
+        entrypoints = ["websecure"]
+        service = "nextcloud"
+        [http.routers.nextcloud.tls]
+            certResolver = "dns-cloudflare"
+
+[http.services]
+    [http.services.hass.loadBalancer]
+        [[http.services.hass.loadBalancer.servers]]
+            url = "http://192.168.1.65:8123"
+
+    [http.services.nextcloud.loadBalancer]
+        [[http.services.nextcloud.loadBalancer.servers]]
+            url = "http://192.168.1.67:9321"
+
+[http.middlewares]
+    [http.middlewares.auth.basicauth]
+        users = [
+            "ishan:$2y$05$sRRTRD4ZGOOOsrAZKv60/es/s0AwgYWGvlLxL2amkN5yBqbMsaiSm",
+            "aurelia:$2y$05$nt/XLqyGeieIp1oNQ7110.WyGyupcDrn9soC5U9s66zM3Xbiojjtq",
+            "sumedha:$apr1$8ic0gna6$CAtgo2sHwfCDD2A664Ey20"
+        ]

@@ -1,0 +1,33 @@
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+
+  [entryPoints.websecure]
+    address = ":443"
+    [entryPoints.websecure.http.tls]
+      certResolver = "dns-cloudflare"
+
+[providers]
+  [providers.docker]
+    endpoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
+
+[providers.file]
+  filename = "/etc/traefik/rules.toml"
+  watch = true
+
+[api]
+  dashboard = true
+
+[log]
+  level = "info"
+
+[certificatesResolvers]
+  [certificatesResolvers.dns-cloudflare.acme]
+    caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+    storage = "/etc/traefik/acme.json"
+    [certificatesResolvers.dns-cloudflare.acme.dnsChallenge]
+      provider = "cloudflare"
+      resolvers = "1.1.1.1:53,1.0.0.1:53"
+      [certificatesResolvers.dns-cloudflare.acme.dnsChallenge.propagation]
+        delayBeforeChecks = 120

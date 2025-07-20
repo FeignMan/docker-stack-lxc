@@ -1,0 +1,8 @@
+# Ignore all files in the secrets directory
+/secrets/*
+# but not the directory itself
+!/secrets/.gitkeep
+# Ignore the duckdns log file
+/duckdns/duck.log
+# Ignore the acme.json file used by traefik for storing certificates
+/traefik/acme.json
