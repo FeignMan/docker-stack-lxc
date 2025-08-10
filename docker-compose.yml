@@ -45,3 +45,42 @@ services:
       - "traefik.http.routers.vaultwarden.rule=Host(`vault.feignman.online`)"
       - "traefik.http.routers.vaultwarden.entrypoints=websecure"
       - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
+
+  nzbget:
+    image: ghcr.io/linuxserver/nzbget:version-v25.2
+    container_name: nzbget
+    environment:
+      - PUID=3002
+      - PGID=3002
+      - TZ=Europe/Paris
+      - UMASK_SET=022 #optional
+    volumes:
+      - /home/ishan/.local/state/iotstack/nzbget/config:/config
+      - /truenas/downloads/nzbget:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nzbget.rule=Host(`nzbget.feignman.online`)"
+      - "traefik.http.routers.nzbget.entrypoints=websecure"
+      # - "traefik.http.routers.nzbget.middlewares=auth@file"
+    ports:
+      - 6789:6789
+    restart: unless-stopped
+
+  deluge:
+    image: linuxserver/deluge:2.1.1
+    container_name: deluge
+    network_mode: host
+    environment:
+      - PUID=3002
+      - PGID=3002
+      - TZ=Europe/Paris
+      #- UMASK_SET=022 #optional
+      #- DELUGE_LOGLEVEL=error #optional
+    volumes:
+      - /home/ishan/.local/state/iotstack/deluge/config:/config
+      - /truenas/downloads/deluge:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nzbget.rule=Host(`deluge.feignman.online`)"
+      - "traefik.http.routers.nzbget.entrypoints=websecure"
+    restart: unless-stopped
