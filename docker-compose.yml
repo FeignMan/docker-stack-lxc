@@ -3,6 +3,10 @@ secrets:
     file: ./secrets/cf_dns_api_token
   email:
     file: ./secrets/email
+  influxdb_admin_password:
+    file: ./secrets/influxdb_admin_password
+  influxdb_admin_token:
+    file: ./secrets/influxdb_admin_token
 
 services:
   traefik:
@@ -58,9 +62,10 @@ services:
       - /home/ishan/.local/state/iotstack/nzbget/config:/config
       - /truenas/downloads/nzbget:/downloads
     labels:
-      - "traefik.enable=true"
+      - "traefik.enable=false"
       - "traefik.http.routers.nzbget.rule=Host(`nzbget.feignman.online`)"
       - "traefik.http.routers.nzbget.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
       # - "traefik.http.routers.nzbget.middlewares=auth@file"
     ports:
       - 6789:6789
@@ -80,7 +85,26 @@ services:
       - /home/ishan/.local/state/iotstack/deluge/config:/config
       - /truenas/downloads/deluge:/downloads
     labels:
-      - "traefik.enable=true"
+      - "traefik.enable=false"
       - "traefik.http.routers.nzbget.rule=Host(`deluge.feignman.online`)"
       - "traefik.http.routers.nzbget.entrypoints=websecure"
+      - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - /home/ishan/.local/state/iotstack/influxdb:/var/lib/influxdb
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=/run/secrets/influxdb_admin_password
+      - DOCKER_INFLUXDB_INIT_ORG=home
+      - DOCKER_INFLUXDB_INIT_BUCKET=home
+      - DOCKER_INFLUXDB_INIT_RETENTION=30d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=/run/secrets/influxdb_admin_token
+      - TZ=Europe/Paris
     restart: unless-stopped
