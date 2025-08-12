@@ -60,7 +60,7 @@ services:
       - UMASK_SET=022 #optional
     volumes:
       - /home/ishan/.local/state/iotstack/nzbget/config:/config
-      - /truenas/downloads/nzbget:/downloads
+      - /truenas/downloads:/downloads
     labels:
       - "traefik.enable=false"
       - "traefik.http.routers.nzbget.rule=Host(`nzbget.feignman.online`)"
@@ -83,7 +83,7 @@ services:
       #- DELUGE_LOGLEVEL=error #optional
     volumes:
       - /home/ishan/.local/state/iotstack/deluge/config:/config
-      - /truenas/downloads/deluge:/downloads
+      - /truenas/downloads:/downloads
     labels:
       - "traefik.enable=false"
       - "traefik.http.routers.nzbget.rule=Host(`deluge.feignman.online`)"
@@ -107,4 +107,46 @@ services:
       - DOCKER_INFLUXDB_INIT_RETENTION=30d
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=/run/secrets/influxdb_admin_token
       - TZ=Europe/Paris
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=3002
+      - PGID=3002
+      - TZ=Europe/Paris
+      # - UMASK_SET=022 #optional
+    volumes:
+      - /home/ishan/.local/state/iotstack/radarr/config:/config
+      - /truenas/Movies:/movies
+      - /truenas/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.feignman.online`)"
+      - "traefik.http.routers.radarr.entrypoints=websecure"
+      - "traefik.http.routers.radarr.middlewares=auth@file"
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=3002
+      - PGID=3002
+      - TZ=Europe/Paris
+      - UMASK_SET=022 #optional
+    volumes:
+      - /home/ishan/.local/state/iotstack/sonarr/config:/config
+      - /truenas/Series:/series
+      - /truenas/downloads:/downloads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.feignman.online`)"
+      - "traefik.http.routers.sonarr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr.middlewares=auth@file"
+    ports:
+      - 8989:8989
     restart: unless-stopped
