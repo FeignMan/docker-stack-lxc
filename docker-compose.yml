@@ -150,3 +150,22 @@ services:
     ports:
       - 8989:8989
     restart: unless-stopped
+
+  telegraf:
+     container_name: telegraf
+     image: telegraf:1.35
+     restart: unless-stopped
+     # Added for latest telegraf: https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
+     user: telegraf:995
+     privileged: true
+     environment:
+       HOST_MOUNT_PREFIX: /rootfs
+       HOST_RUN: /rootfs/run
+       HOST_VAR: /rootfs/var
+       HOST_PROC: /rootfs/proc
+       HOST_SYS: /rootfs/sys
+       HOST_ETC: /rootfs/etc
+     volumes:
+       - ./telegraf/docker-lxc-host.conf:/etc/telegraf/telegraf.conf:ro
+       - /var/run/docker.sock:/var/run/docker.sock:ro
+       - /:/rootfs:ro
