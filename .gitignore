@@ -6,3 +6,5 @@
 /duckdns/duck.log
 # Ignore the acme.json file used by traefik for storing certificates
 /traefik/acme.json
+
+volumes
