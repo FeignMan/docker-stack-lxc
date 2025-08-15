@@ -91,23 +91,23 @@ services:
       - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
     restart: unless-stopped
 
-  influxdb:
-    image: influxdb:2.7
-    container_name: influxdb
-    ports:
-      - "8086:8086"
-    volumes:
-      - ./volumes/influxdb:/var/lib/influxdb
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=/run/secrets/influxdb_admin_password
-      - DOCKER_INFLUXDB_INIT_ORG=home
-      - DOCKER_INFLUXDB_INIT_BUCKET=home
-      - DOCKER_INFLUXDB_INIT_RETENTION=30d
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=/run/secrets/influxdb_admin_token
-      - TZ=Europe/Paris
-    restart: unless-stopped
+  # influxdb:
+  #   image: influxdb:2.7
+  #   container_name: influxdb
+  #   ports:
+  #     - "8086:8086"
+  #   volumes:
+  #     - ./volumes/influxdb:/var/lib/influxdb
+  #   environment:
+  #     - DOCKER_INFLUXDB_INIT_MODE=setup
+  #     - DOCKER_INFLUXDB_INIT_USERNAME=admin
+  #     - DOCKER_INFLUXDB_INIT_PASSWORD=/run/secrets/influxdb_admin_password
+  #     - DOCKER_INFLUXDB_INIT_ORG=home
+  #     - DOCKER_INFLUXDB_INIT_BUCKET=home
+  #     - DOCKER_INFLUXDB_INIT_RETENTION=30d
+  #     - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=/run/secrets/influxdb_admin_token
+  #     - TZ=Europe/Paris
+  #   restart: unless-stopped
 
   radarr:
     image: linuxserver/radarr:latest
