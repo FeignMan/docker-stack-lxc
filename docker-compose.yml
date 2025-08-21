@@ -109,6 +109,27 @@ services:
   #     - TZ=Europe/Paris
   #   restart: unless-stopped
 
+  plex:
+    image: linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=3002
+      - PGID=993  # needs to be set to the GID of 'render' to allow GPU access
+      - VERSION=docker
+      - SYSCALL_MAX_ENABLED=1
+      - TZ=Europe/Paris
+      # - UMASK_SET=022 #optional
+    volumes:
+      - ./volumes/plex/config:/config
+      - ./volumes/plex/transcode:/transcode
+      - /truenas/Movies:/data/Movies
+      - /truenas/Series:/data/Series
+      - /truenas/downloads/downloaded/extra:/data/Extras
+    devices:
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+
   radarr:
     image: linuxserver/radarr:latest
     container_name: radarr
