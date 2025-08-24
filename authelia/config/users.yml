@@ -1,0 +1,9 @@
+users:
+  ishan:
+    displayname: 'Ishan Aditya'
+    ## Generate a new hash using the instructions at - https://www.authelia.com/reference/guides/passwords/#passwords
+    password: '$argon2id$v=19$m=65536,t=3,p=4$M6oQyECz/xmS7sj+4sy3/g$FExP1OR3zac0Z3Ly+3FKF5EMzmpfZXnz/fufzGOCQdc'
+    email: 'authelia@authelia.com'
+    groups:
+      - 'admin'
+      - 'dev'
