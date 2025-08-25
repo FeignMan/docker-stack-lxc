@@ -59,6 +59,39 @@ services:
       - "traefik.http.middlewares.authelia.forwardauth.trustforwardheader=true"
       - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email"
 
+  lldap:
+    image: lldap/lldap:stable
+    container_name: lldap
+    restart: unless-stopped
+    environment:
+      # - LLDAP_HTTP_PORT=3890
+      # - LLDAP_LDAP_PORT=389
+      # - LLDAP_DATABASE_URL=sqlite:///data/lldap.db
+      - LLDAP_JWT_SECRET_FILE=/secrets/lldap_jwt_secret
+      - LLDAP_KEY_SEED_FILE=/secrets/lldap_key_seed
+      - LLDAP_LDAP_BASE_DN=dc=feignman,dc=online
+      - LLDAP_LDAP_USER_DN=ou=users,dc=feignman,dc=online
+      # - LLDAP_CONFIG_FILE=/data/lldap_config.toml
+      - UID=1000
+      - GID=1000
+      - TZ=Europe/Paris
+    volumes:
+      # - ./lldap/lldap_config.toml:/data/lldap_config.toml:rw
+      - ./volumes/lldap:/data
+      - ./secrets/lldap_jwt_secret:/secrets/lldap_jwt_secret:ro
+      - ./secrets/lldap_key_seed:/secrets/lldap_key_seed:ro
+      - ./secrets/lldap_admin_password:/secrets/lldap_admin_password:ro
+    ports:
+      # - "3890:3890"
+      # - "389:389"
+      - "17170:17170"  # lldap admin interface
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.lldap.rule=Host(`ldap.feignman.online`)"
+      - "traefik.http.routers.lldap.entrypoints=websecure"
+      - "traefik.http.routers.lldap.tls.certresolver=dns-cloudflare"
+      # - "traefik.http.routers.lldap.port=3890"
+
   vaultwarden:
     image: vaultwarden/server:1.34.1-alpine
     container_name: vaultwarden
