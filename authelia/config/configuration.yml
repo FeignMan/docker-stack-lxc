@@ -60,7 +60,15 @@ storage:
   local:
     path: '/config/db.sqlite3'
 
+# notifier:
+#   disable_startup_check: false
+#   filesystem:
+#     filename: '/config/notification.txt'
 notifier:
-  disable_startup_check: false
-  filesystem:
-    filename: '/config/notification.txt'
+  smtp:
+    address: 'submission://smtp.gmail.com:587'
+    username: 'ishanaditya@gmail.com'
+    # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
+    password: {{ secret "/secrets/smtp_password.txt" | mindent 0 "|" | msquote }}
+    sender: 'Authelia <admin@feignman.online>'
+    subject: "[Authelia] {title}"
