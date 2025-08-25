@@ -25,17 +25,12 @@ password_policy:
     min_score: 3
 
 authentication_backend:
-  file:
-    path: '/config/users.yml'
-    password:
-      algorithm: 'argon2'
-      argon2:
-        variant: 'argon2id'
-        iterations: 3
-        memory: 65535
-        parallelism: 4
-        key_length: 32
-        salt_length: 16
+  ldap:
+    implementation: 'lldap'
+    address: 'ldap://lldap:3890'
+    base_dn: 'DC=feignman,DC=online'
+    user: 'UID=authelia,OU=people,DC=feignman,DC=online'
+    password: {{ secret "/secrets/lldap_password.txt" | mindent 0 "|" | msquote }}
 
 access_control:
   default_policy: 'one_factor'
