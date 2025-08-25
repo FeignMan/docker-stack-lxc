@@ -64,14 +64,12 @@ services:
     container_name: lldap
     restart: unless-stopped
     environment:
-      # - LLDAP_HTTP_PORT=3890
-      # - LLDAP_LDAP_PORT=389
-      # - LLDAP_DATABASE_URL=sqlite:///data/lldap.db
       - LLDAP_JWT_SECRET_FILE=/secrets/lldap_jwt_secret
       - LLDAP_KEY_SEED_FILE=/secrets/lldap_key_seed
       - LLDAP_LDAP_BASE_DN=dc=feignman,dc=online
-      - LLDAP_LDAP_USER_DN=ou=users,dc=feignman,dc=online
-      # - LLDAP_CONFIG_FILE=/data/lldap_config.toml
+      - LLDAP_LDAP_USER_DN=admin
+      - LLDAP_LDAP_USER_EMAIL=/run/secrets/email
+      - LLDAP_LDAP_USER_PASS_FILE=/secrets/lldap_user_pass
       - UID=1000
       - GID=1000
       - TZ=Europe/Paris
@@ -80,11 +78,11 @@ services:
       - ./volumes/lldap:/data
       - ./secrets/lldap_jwt_secret:/secrets/lldap_jwt_secret:ro
       - ./secrets/lldap_key_seed:/secrets/lldap_key_seed:ro
-      - ./secrets/lldap_admin_password:/secrets/lldap_admin_password:ro
+      - ./secrets/lldap_admin_password:/secrets/lldap_user_pass:ro
+    secrets:
+      - email
     ports:
-      # - "3890:3890"
-      # - "389:389"
-      - "17170:17170"  # lldap admin interface
+      - "17170:17170"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.lldap.rule=Host(`ldap.feignman.online`)"
