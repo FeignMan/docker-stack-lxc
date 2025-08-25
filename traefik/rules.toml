@@ -5,6 +5,13 @@
         service = "hass"
         [http.routers.hass.tls]
             certResolver = "dns-cloudflare"
+    
+    [http.routers.grafana]
+        rule = "Host(`grafana.feignman.online`)"
+        entrypoints = ["websecure"]
+        service = "grafana"
+        [http.routers.grafana.tls]
+            certResolver = "dns-cloudflare"
 
     [http.routers.nextcloud]
         rule = "Host(`nextcloud.feignman.online`)"
@@ -17,6 +24,10 @@
     [http.services.hass.loadBalancer]
         [[http.services.hass.loadBalancer.servers]]
             url = "http://192.168.1.65:8123"
+
+    [http.services.grafana.loadBalancer]
+        [[http.services.grafana.loadBalancer.servers]]
+            url = "http://192.168.1.67:3000"
 
     [http.services.nextcloud.loadBalancer]
         [[http.services.nextcloud.loadBalancer.servers]]
