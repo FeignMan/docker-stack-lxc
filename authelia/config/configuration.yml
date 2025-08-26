@@ -41,6 +41,10 @@ access_control:
 session:
   name: 'feignman.online'
   secret: {{ secret "/secrets/session_secret.txt" | mindent 0 "|" | msquote }}
+  same_site: 'lax'
+  inactivity: '15m'
+  expiration: '3h'
+  remember_me: '7d'
   cookies:
     - domain: 'feignman.online'
       authelia_url: 'https://auth.feignman.online'
