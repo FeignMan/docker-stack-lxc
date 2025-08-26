@@ -7,6 +7,8 @@ secrets:
     file: ./secrets/influxdb_admin_password
   influxdb_admin_token:
     file: ./secrets/influxdb_admin_token
+  lldap_smtp_password:
+    file: ./secrets/lldap_smtp_password
 
 services:
   traefik:
@@ -70,6 +72,7 @@ services:
       - LLDAP_LDAP_USER_DN=admin
       - LLDAP_LDAP_USER_EMAIL=/run/secrets/email
       - LLDAP_LDAP_USER_PASS_FILE=/secrets/lldap_user_pass
+      # - LLDAP_SMTP_OPTIONS__PASSWORD=/run/secrets/lldap_smtp_password
       - UID=1000
       - GID=1000
       - TZ=Europe/Paris
@@ -78,17 +81,19 @@ services:
       - ./volumes/lldap:/data
       - ./secrets/lldap_jwt_secret:/secrets/lldap_jwt_secret:ro
       - ./secrets/lldap_key_seed:/secrets/lldap_key_seed:ro
-      - ./secrets/lldap_admin_password:/secrets/lldap_user_pass:ro
+      - ./secrets/lldap_user_pass:/secrets/lldap_user_pass:ro
     secrets:
       - email
+      # - lldap_smtp_password
     ports:
       - "17170:17170"
+      - "3890:3890"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.lldap.rule=Host(`ldap.feignman.online`)"
       - "traefik.http.routers.lldap.entrypoints=websecure"
       - "traefik.http.routers.lldap.tls.certresolver=dns-cloudflare"
-      # - "traefik.http.routers.lldap.port=3890"
+      - "traefik.http.services.lldap.loadbalancer.server.port=17170"
 
   vaultwarden:
     image: vaultwarden/server:1.34.1-alpine
