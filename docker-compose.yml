@@ -1,14 +1,8 @@
 secrets:
-  cf_dns_api_token:
-    file: ./secrets/cf_dns_api_token
-  email:
-    file: ./secrets/email
   influxdb_admin_password:
     file: ./secrets/influxdb_admin_password
   influxdb_admin_token:
     file: ./secrets/influxdb_admin_token
-  lldap_smtp_password:
-    file: ./secrets/lldap_smtp_password
 
 services:
   traefik:
@@ -21,11 +15,8 @@ services:
       - "8080:8080"
     environment:
       - TZ=Europe/Paris
-      - CF_DNS_API_TOKEN_FILE=/run/secrets/cf_dns_api_token
-      - CF_EMAIL_FILE=/run/secrets/email
-    secrets:
-      - cf_dns_api_token
-      - email
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CF_EMAIL=${MY_EMAIL}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/traefik.toml:/etc/traefik/traefik.toml:ro
