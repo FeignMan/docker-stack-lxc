@@ -66,25 +66,13 @@ services:
     container_name: lldap
     restart: unless-stopped
     environment:
-      - LLDAP_JWT_SECRET_FILE=/secrets/lldap_jwt_secret
-      - LLDAP_KEY_SEED_FILE=/secrets/lldap_key_seed
+      - LLDAP_JWT_SECRET=${LLDAP_JWT_SECRET}
+      - LLDAP_KEY_SEED=${LLDAP_KEY_SEED}
       - LLDAP_LDAP_BASE_DN=dc=feignman,dc=online
       - LLDAP_LDAP_USER_DN=admin
-      - LLDAP_LDAP_USER_EMAIL=/run/secrets/email
-      - LLDAP_LDAP_USER_PASS_FILE=/secrets/lldap_user_pass
-      # - LLDAP_SMTP_OPTIONS__PASSWORD=/run/secrets/lldap_smtp_password
-      - UID=1000
-      - GID=1000
-      - TZ=Europe/Paris
-    volumes:
-      # - ./lldap/lldap_config.toml:/data/lldap_config.toml:rw
-      - ./volumes/lldap:/data
-      - ./secrets/lldap_jwt_secret:/secrets/lldap_jwt_secret:ro
-      - ./secrets/lldap_key_seed:/secrets/lldap_key_seed:ro
-      - ./secrets/lldap_user_pass:/secrets/lldap_user_pass:ro
-    secrets:
-      - email
-      # - lldap_smtp_password
+      - LLDAP_LDAP_USER_EMAIL=${MY_EMAIL}
+      - LLDAP_LDAP_USER_PASS=${LLDAP_USER_PASSWORD}
+      # - LLDAP_SMTP_OPTIONS__PASSWORD=${LLDAP_SMTP_PASSWORD}
     ports:
       - "17170:17170"
       - "3890:3890"
