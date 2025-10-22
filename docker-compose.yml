@@ -81,6 +81,8 @@ services:
       - ./volumes/vaultwarden:/data/
     ports:
       - 8090:80
+    environment:
+      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN}
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
