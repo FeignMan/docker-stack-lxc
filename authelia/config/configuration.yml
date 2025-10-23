@@ -11,7 +11,7 @@ identity_validation:
     require_second_factor: true
   reset_password:
     jwt_lifespan: '5 minutes'
-    jwt_secret: {{ secret "/secrets/jwt_secret.txt" | mindent 0 "|" | msquote }}
+    jwt_secret: {{ mustEnv "JWT_SECRET" | msquote }}
 
 totp:
   disable: true
@@ -30,7 +30,7 @@ authentication_backend:
     address: 'ldap://lldap:3890'
     base_dn: 'DC=feignman,DC=online'
     user: 'UID=authelia,OU=people,DC=feignman,DC=online'
-    password: {{ secret "/secrets/lldap_password.txt" | mindent 0 "|" | msquote }}
+    password: {{ mustEnv "LLDAP_AUTHELIA_PASSWORD" | msquote }}
 
 access_control:
   default_policy: 'one_factor'
@@ -40,7 +40,7 @@ access_control:
 
 session:
   name: 'feignman.online'
-  secret: {{ secret "/secrets/session_secret.txt" | mindent 0 "|" | msquote }}
+  secret: {{ mustEnv "SESSION_SECRET" | msquote }}
   same_site: 'lax'
   inactivity: '15m'
   expiration: '3h'
@@ -55,7 +55,7 @@ regulation:
   ban_time: 300
 
 storage:
-  encryption_key: {{ secret "/secrets/storage_encryption_key.txt" | mindent 0 "|" | msquote }}
+  encryption_key: {{ mustEnv "STORAGE_ENCRYPTION_KEY" | msquote }}
   local:
     path: '/config/db.sqlite3'
 
@@ -66,8 +66,8 @@ storage:
 notifier:
   smtp:
     address: 'submission://smtp.gmail.com:587'
-    username: 'ishanaditya@gmail.com'
+    username: {{ mustEnv "SMTP_EMAIL" | msquote }}
     # Password can also be set using a secret: https://www.authelia.com/configuration/methods/secrets/
-    password: {{ secret "/secrets/smtp_password.txt" | mindent 0 "|" | msquote }}
+    password: {{ mustEnv "SMTP_PASSWORD" | msquote }}
     sender: 'Authelia <admin@feignman.online>'
     subject: "[Authelia] {title}"
