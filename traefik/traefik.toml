@@ -7,6 +7,12 @@
 
   [entryPoints.websecure]
     address = ":443"
+    # https://docs.immich.app/administration/reverse-proxy/#traefik-proxy-example-config
+    [transport]
+      [transport.respondingTimeouts]
+        readTimeout = "900s"
+        idleTimeout = "900s"
+        writeTimeout = "900s"
     [entryPoints.websecure.http.tls]
       certResolver = "dns-cloudflare"
 
