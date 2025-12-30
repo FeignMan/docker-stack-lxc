@@ -213,6 +213,25 @@ services:
        - /var/run/docker.sock:/var/run/docker.sock:ro
        - /:/rootfs:ro
 
+  homarr:
+    container_name: homarr
+    image: ghcr.io/homarr-labs/homarr:latest
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ./volumes/homarr:/appdata
+    environment:
+      - SECRET_ENCRYPTION_KEY=${HOMARR_ENCRYPTION_KEY}
+    #  - PUID=1000
+    #  - PGID=1000
+    ports:
+      - '7575:7575'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homarr.rule=Host(`home.feignman.online`)"
+      - "traefik.http.routers.homarr.entrypoints=websecure"
+      - "traefik.http.routers.homarr.tls.certresolver=dns-cloudflare"
+
 ### -------------------------------------------------------------------
 ###                               IMMICH
 ### -------------------------------------------------------------------
