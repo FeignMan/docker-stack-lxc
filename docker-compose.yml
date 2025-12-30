@@ -261,8 +261,8 @@ services:
     image: ghcr.io/immich-app/immich-server:v2
     volumes:
       # Do not edit the next line. If you want to change the media storage locati>
-      - /truenas/Photos/immich-library:/data
-      - /truenas/Photos:/mnt/media/truenas-photos
+      - /truenas/Photos:/mnt/media/external-library
+      - /truenas/immich-library:/data
       - /etc/localtime:/etc/localtime:ro
     environment:
       - TZ=Europe/Paris
