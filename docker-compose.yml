@@ -265,6 +265,9 @@ services:
       OPENAI_BASE_URL: https://generativelanguage.googleapis.com/v1beta
       INFERENCE_TEXT_MODEL: gemini-2.5-flash
       INFERENCE_IMAGE_MODEL: gemini-2.5-flash
+    depends_on:
+      - karakeep-chrome
+      - karakeep-meilisearch
 
   karakeep-chrome:
     container_name: karakeep-chrome
