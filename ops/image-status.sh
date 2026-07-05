@@ -2,11 +2,12 @@
 # ops/image-status.sh
 #
 # Print a table of running containers with, for each:
-#   SERVICE  – container name
-#   CURRENT  – tag (and short digest if pinned) the container is running
-#   CREATED  – container creation date
-#   LATEST   – latest version tag available upstream
-#   STATUS   – up to date / behind / update available / unknown
+#   SERVICE        – container name
+#   CURRENT        – tag (and short digest if pinned) the container is running
+#   CREATED        – container creation date
+#   LATEST         – latest version tag available upstream
+#   LATEST CREATED – build date of the latest upstream image (from its config blob)
+#   STATUS         – up to date / behind / update available / unknown
 #
 # HOW IT DECIDES
 #   • Channel tags (latest, stable, release, nightly, …): compares the digest
@@ -26,6 +27,9 @@
 #   • Hits docker hub / ghcr.io / gcr.io anonymously; rate limits apply.
 #   • RepoDigests stores the manifest-list digest as pulled; comparing it to the
 #     upstream tag's current list digest is accurate for "has the tag moved".
+#   • LATEST CREATED is the image's build time from its config blob (not the
+#     registry push time); the extra blob GET counts toward docker hub's
+#     anonymous pull quota.
 #
 # Requires: docker, curl, jq, column, awk, sed, sort, grep
 set -euo pipefail
@@ -106,6 +110,53 @@ tag_digest() {
     "https://${registry}/v2/${repo}/manifests/${tag}" \
     | tr -d '\r' \
     | awk -F': ' 'tolower($1)=="docker-content-digest"{print $2}'
+}
+
+# Fetch the build date (from the image config blob) of a given tag. Echoes a
+# YYYY-MM-DD string or empty. Resolves multi-arch manifest lists to the
+# linux/amd64 (or first) child's config blob. Registry-agnostic (docker hub,
+# ghcr, gcr). Every network call is bounded; any failure yields empty output.
+tag_created() {
+  local registry=$1 repo=$2 tag=$3 token=$4
+  local manifest config_digest result=""
+
+  manifest=$(curl -fsSL --compressed --max-time 15 \
+    -H "Authorization: Bearer ${token}" \
+    -H "Accept: application/vnd.docker.distribution.manifest.list.v2+json" \
+    -H "Accept: application/vnd.oci.image.index.v1+json" \
+    -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+    -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+    "https://${registry}/v2/${repo}/manifests/${tag}" 2>/dev/null) || return
+
+  # Structure-based type detection. Multi-arch lists / OCI indexes have a
+  # top-level "manifests" array; single-arch manifests have a "config" object.
+  # (More reliable than Content-Type / .mediaType, which OCI indexes sometimes
+  # omit.)
+  if printf '%s' "$manifest" | jq -e 'has("manifests")' >/dev/null 2>&1; then
+    local child
+    child=$(printf '%s' "$manifest" | jq -r '
+      (.manifests | map(select(.platform.os=="linux" and .platform.architecture=="amd64")) | .[0].digest) // .manifests[0].digest' 2>/dev/null) || true
+    if [[ -n "$child" && "$child" != "null" ]]; then
+      config_digest=$(curl -fsSL --compressed --max-time 15 \
+        -H "Authorization: Bearer ${token}" \
+        -H "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+        -H "Accept: application/vnd.oci.image.manifest.v1+json" \
+        "https://${registry}/v2/${repo}/manifests/${child}" 2>/dev/null \
+        | jq -r '.config.digest // empty' 2>/dev/null) || true
+    fi
+  else
+    config_digest=$(printf '%s' "$manifest" | jq -r '.config.digest // empty' 2>/dev/null) || true
+  fi
+
+  if [[ -n "$config_digest" && "$config_digest" != "null" ]]; then
+    result=$(curl -fsSL --compressed --max-time 15 \
+      -H "Authorization: Bearer ${token}" \
+      "https://${registry}/v2/${repo}/blobs/${config_digest}" 2>/dev/null \
+      | jq -r '.created // empty' 2>/dev/null \
+      | cut -dT -f1) || true
+  fi
+
+  printf '%s\n' "$result"
 }
 
 # ── image ref parsing ────────────────────────────────────────────────
@@ -223,7 +274,20 @@ process() {
     fi
   fi
 
-  printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$current" "$created" "$latest" "$status"
+  # when we resolved a latest tag, also fetch its upstream build date
+  local latest_created="-"
+  if [[ -n "$token" && "$latest" != "-" ]]; then
+    local lookup_tag=""
+    if [[ "$latest" == "$tag (channel)" ]]; then
+      lookup_tag="$tag"
+    else
+      lookup_tag="$latest"
+    fi
+    latest_created=$(tag_created "$registry" "$repo" "$lookup_tag" "$token" 2>/dev/null || true)
+    [[ -z "$latest_created" ]] && latest_created="?"
+  fi
+
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$name" "$current" "$created" "$latest" "$latest_created" "$status"
 }
 
 # ── main ─────────────────────────────────────────────────────────────
@@ -269,13 +333,13 @@ main() {
       rows+=( "$(cat "$tmpdir/$i.out")" )
     else
       name="${line%%	*}"
-      rows+=( "$(printf '%s\t%s\t%s\t%s\t%s' "$name" '?' '?' '?' 'error')" )
+      rows+=( "$(printf '%s\t%s\t%s\t%s\t%s\t%s' "$name" '?' '?' '?' '?' 'error')" )
     fi
     ((++i))
   done
 
   {
-    printf 'SERVICE\tCURRENT\tCREATED\tLATEST\tSTATUS\n'
+    printf 'SERVICE\tCURRENT\tCREATED\tLATEST\tLATEST CREATED\tSTATUS\n'
     printf '%s\n' "${rows[@]}" | sort
   } | column -t -s$'\t'
 }
