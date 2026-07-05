@@ -105,7 +105,7 @@ services:
       - "traefik.enable=false"
       - "traefik.http.routers.nzbget.rule=Host(`nzbget.feignman.online`)"
       - "traefik.http.routers.nzbget.entrypoints=websecure"
-      - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
+      - "traefik.http.routers.nzbget.tls.certresolver=dns-cloudflare"
       # - "traefik.http.routers.nzbget.middlewares=auth@file"
     ports:
       - 6789:6789
@@ -126,9 +126,9 @@ services:
       - /truenas/downloads:/downloads
     labels:
       - "traefik.enable=false"
-      - "traefik.http.routers.nzbget.rule=Host(`deluge.feignman.online`)"
-      - "traefik.http.routers.nzbget.entrypoints=websecure"
-      - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
+      - "traefik.http.routers.deluge.rule=Host(`deluge.feignman.online`)"
+      - "traefik.http.routers.deluge.entrypoints=websecure"
+      - "traefik.http.routers.deluge.tls.certresolver=dns-cloudflare"
     restart: unless-stopped
 
   plex:
