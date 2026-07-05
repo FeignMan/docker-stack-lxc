@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:3.4.4
+    image: traefik:3.7.6
     container_name: traefik
     restart: unless-stopped
     ports:
@@ -25,7 +25,7 @@ services:
       - traefik.http.routers.traefik.middlewares=authelia@docker
 
   authelia:
-    image: authelia/authelia:latest
+    image: authelia/authelia:4
     container_name: authelia
     restart: unless-stopped
     volumes:
@@ -91,7 +91,7 @@ services:
       - "traefik.http.routers.vaultwarden.tls.certresolver=dns-cloudflare"
 
   nzbget:
-    image: ghcr.io/linuxserver/nzbget:version-v25.2
+    image: ghcr.io/linuxserver/nzbget:version-v26.1
     container_name: nzbget
     environment:
       - PUID=3002
@@ -196,7 +196,7 @@ services:
 
   telegraf:
      container_name: telegraf
-     image: telegraf:1.35
+     image: telegraf:1.39.1
      restart: unless-stopped
      # Added for latest telegraf: https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
      # GID is the host's `docker` group (run `stat -c %g /var/run/docker.sock`
@@ -271,7 +271,7 @@ services:
 
   karakeep-chrome:
     container_name: karakeep-chrome
-    image: gcr.io/zenika-hub/alpine-chrome:123
+    image: gcr.io/zenika-hub/alpine-chrome:latest
     restart: unless-stopped
     command:
       - --no-sandbox
@@ -283,11 +283,12 @@ services:
 
   karakeep-meilisearch:
     container_name: karakeep-meilisearch
-    image: getmeili/meilisearch:v1.13.3
+    image: getmeili/meilisearch:v1.48.3
     restart: unless-stopped
     environment:
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: ${KARAKEEP_MEILISEARCH_MASTERKEY}
+      # MEILI_EXPERIMENTAL_DUMPLESS_UPGRADE: "true"
     volumes:
       - ./volumes/karakeep/meilisearch:/meili_data
 
@@ -311,7 +312,7 @@ services:
 
   immich-redis:
     container_name: immich-redis
-    image: docker.io/valkey/valkey:8@sha256:81db6d39e1bba3b3ff32bd3a1b19a6d69690f94a3954ec131277b9a26b95b3aa
+    image: docker.io/valkey/valkey:9@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9
     healthcheck:
       test: redis-cli ping || exit 1
     restart: always
@@ -332,7 +333,7 @@ services:
 
   immich-server:
     container_name: immich-server
-    image: ghcr.io/immich-app/immich-server:v2
+    image: ghcr.io/immich-app/immich-server:v3
     volumes:
       - /truenas/Photos:/mnt/media/external-library
       - /truenas/immich-library:/data
