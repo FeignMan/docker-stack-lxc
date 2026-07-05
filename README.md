@@ -83,6 +83,14 @@ docker compose logs -f <service>
 
 Note: `immich-postgres` is pinned by digest (`@sha256:...`) and `immich-server` to `v2`. Bump those deliberately — don't expect `pull` to move them silently.
 
+### Checking what's behind
+
+```bash
+./ops/image-status.sh
+```
+
+Prints a table of each running container's current tag, creation date, latest upstream tag, and status (up to date / behind / update available). Channel tags (`latest`/`stable`/`release`) are compared by digest; version tags by the highest `sort -V`. It's a best-effort hint — read the actual tags before bumping, especially for digest-pinned images.
+
 ### Cleaning up old images and cruft
 
 ```bash

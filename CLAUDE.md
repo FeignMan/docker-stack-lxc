@@ -74,6 +74,8 @@ docker compose up -d                   # recreate anything whose image changed
 ```
 Pinned tags move when `pull` finds a new digest; `latest`/`release` tags move too. After updating, `docker compose logs -f <service>` to confirm it came up healthy. For `immich`, the postgres image is pinned by digest (`@sha256:...`) and immich-server to `v2` — bump those deliberately, not accidentally.
 
+To see which services are behind before pulling, run `./ops/image-status.sh` — it prints a table of current tag, creation date, latest upstream tag, and status (up to date / behind / update available) per running container. Channel tags (`latest`/`stable`/`release`) are checked by digest; version tags by highest `sort -V`. Read its header comment for caveats (best-effort "latest", digest-pinned immich-postgres).
+
 ### Cleaning up old images and cruft
 ```bash
 docker image prune -a                  # remove every image not referenced by a running/stopped container (frees the most space)
