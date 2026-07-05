@@ -4,7 +4,9 @@
 # Print a table of running containers with, for each:
 #   SERVICE        – container name
 #   CURRENT        – tag (and short digest if pinned) the container is running
-#   CREATED        – container creation date
+#   CREATED        – image build date (from `docker image inspect`, not
+#                    the container's Created — which would be "today"
+#                    after every `compose up -d`)
 #   LATEST         – latest version tag available upstream
 #   LATEST CREATED – build date of the latest upstream image (from its config blob)
 #   STATUS         – up to date / behind / update available / unknown
@@ -209,27 +211,29 @@ parse_image() {
 # ── per-container work ───────────────────────────────────────────────
 process() {
   local name=$1 image=$2
-  local created cfg
-  created=$(docker inspect -f '{{.Created}}' "$name" 2>/dev/null | cut -dT -f1 || true)
-  [[ -z "$created" ]] && created="?"
-
-  # Config.Image is the exact ref used to create the container (resolves env vars)
+  local cfg
   cfg=$(docker inspect -f '{{.Config.Image}}' "$name" 2>/dev/null || true)
   [[ -n "$cfg" ]] && image="$cfg"
+
+  # Created and RepoDigests are properties of the IMAGE, not the container.
+  # Using the container's .Created would show "today" every time the
+  # container is recreated (i.e. when we last pulled), not when the image
+  # was actually built — query the image by ID so the date matches
+  # `docker images`.
+  local created="" img_id="" run_digest=""
+  img_id=$(docker inspect -f '{{.Image}}' "$name" 2>/dev/null || true)
+  if [[ -n "$img_id" ]]; then
+    created=$(docker image inspect -f '{{.Created}}' "$img_id" 2>/dev/null | cut -dT -f1 || true)
+    run_digest=$(docker image inspect -f '{{range .RepoDigests}}{{.}} {{end}}' "$img_id" 2>/dev/null \
+      | awk '{print $1}' | sed 's/.*@//' || true)
+  fi
+  [[ -z "$created" ]] && created="?"
 
   local registry repo tag digest
   IFS=$'\t' read -r registry repo tag digest < <(parse_image "$image")
 
   local current="$tag"
   [[ -n "$digest" ]] && current="${tag}@${digest:7:12}..."
-
-  # digest the image was pulled with (RepoDigests is on the IMAGE, not the container)
-  local img_id run_digest=""
-  img_id=$(docker inspect -f '{{.Image}}' "$name" 2>/dev/null || true)
-  if [[ -n "$img_id" ]]; then
-    run_digest=$(docker image inspect -f '{{range .RepoDigests}}{{.}} {{end}}' "$img_id" 2>/dev/null \
-      | awk '{print $1}' | sed 's/.*@//' || true)
-  fi
 
   local token tags latest="" status="?"
   token=$(get_token "$registry" "$repo" 2>/dev/null || true)
