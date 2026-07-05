@@ -199,7 +199,10 @@ services:
      image: telegraf:1.35
      restart: unless-stopped
      # Added for latest telegraf: https://www.influxdata.com/blog/docker-run-telegraf-as-non-root/
-     user: telegraf:995
+     # GID is the host's `docker` group (run `stat -c %g /var/run/docker.sock`
+     # to verify on a different host), so the docker input plugin can read the
+     # socket. On this box the docker group is GID 989.
+     user: telegraf:989
      privileged: true
      environment:
        HOST_MOUNT_PREFIX: /rootfs
