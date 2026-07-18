@@ -20,6 +20,14 @@
         [http.routers.nextcloud.tls]
             certResolver = "dns-cloudflare"
 
+    [http.routers.lidarr]
+        rule = "Host(`lidarr.feignman.online`)"
+        entrypoints = ["websecure"]
+        service = "lidarr"
+        [http.routers.lidarr.tls]
+            certResolver = "dns-cloudflare"
+
+
 [http.services]
     [http.services.hass.loadBalancer]
         [[http.services.hass.loadBalancer.servers]]
@@ -32,6 +40,10 @@
     [http.services.nextcloud.loadBalancer]
         [[http.services.nextcloud.loadBalancer.servers]]
             url = "http://192.168.1.67:9321"
+
+    [http.services.lidarr.loadBalancer]
+        [[http.services.lidarr.loadBalancer.servers]]
+            url = "http://192.168.1.67:8686"
 
 [http.middlewares]
     [http.middlewares.auth.basicauth]
